@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import {
   Controller,
   Get,
@@ -29,25 +32,53 @@ export class TransactionController {
   }
 
   @Get()
-  findAll() {
-    return this.transactionService.findAll();
+  async findAll(@Res() res: Response) {
+    const transactions = await this.transactionService.findAll();
+
+    if (!transactions || !transactions.length) {
+      return res.status(204).send({ message: 'No transactions found.' });
+    }
+
+    return res.status(200).send(transactions);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.transactionService.findOne(+id);
+  async findOne(@Param('id') id: string, @Res() res: Response) {
+    const transaction = await this.transactionService.findOne(id);
+
+    if (!transaction) {
+      return res.status(204).send({ message: 'No transaction found.' });
+    }
+
+    return res.status(200).send(transaction);
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateTransactionDto: UpdateTransactionDto,
+    @Res() res: Response,
   ) {
-    return this.transactionService.update(+id, updateTransactionDto);
+    const transaction = await this.transactionService.update(
+      id,
+      updateTransactionDto,
+    );
+
+    if (!transaction) {
+      return res.status(204).send({ message: 'No transaction found.' });
+    }
+
+    return res.status(200).send(transaction);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.transactionService.remove(+id);
+  async remove(@Param('id') id: string, @Res() res: Response) {
+    const transaction = await this.transactionService.remove(id);
+
+    if (!transaction) {
+      return res.status(204).send({ message: 'No transaction found.' });
+    }
+
+    return res.status(200).send(transaction);
   }
 }
