@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import {
   Controller,
   Get,
@@ -10,6 +7,7 @@ import {
   Param,
   Delete,
   Res,
+  HttpStatus,
 } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
@@ -27,7 +25,7 @@ export class TransactionController {
   ) {
     const createdTransaction =
       await this.transactionService.create(createTransactionDto);
-    res.status(201).send(createdTransaction);
+    res.status(HttpStatus.CREATED).send(createdTransaction);
     return;
   }
 
@@ -36,21 +34,24 @@ export class TransactionController {
     const transactions = await this.transactionService.findAll();
 
     if (!transactions || !transactions.length) {
-      return res.status(204).send({ message: 'No transactions found.' });
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .send({ message: 'No transactions found.' });
     }
 
-    return res.status(200).send(transactions);
+    return res.status(HttpStatus.OK).send(transactions);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string, @Res() res: Response) {
-    const transaction = await this.transactionService.findOne(id);
+    const foundTransaction = await this.transactionService.findOne(id);
 
-    if (!transaction) {
-      return res.status(204).send({ message: 'No transaction found.' });
+    if (!foundTransaction) {
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .send({ message: 'No transaction found.' });
     }
-
-    return res.status(200).send(transaction);
+    return res.status(HttpStatus.OK).send(foundTransaction);
   }
 
   @Patch(':id')
@@ -59,16 +60,18 @@ export class TransactionController {
     @Body() updateTransactionDto: UpdateTransactionDto,
     @Res() res: Response,
   ) {
-    const transaction = await this.transactionService.update(
+    const updatedTransaction = await this.transactionService.update(
       id,
       updateTransactionDto,
     );
 
-    if (!transaction) {
-      return res.status(204).send({ message: 'No transaction found.' });
+    if (!updatedTransaction) {
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .send({ message: 'No transaction found.' });
     }
 
-    return res.status(200).send(transaction);
+    return res.status(HttpStatus.OK).send(updatedTransaction);
   }
 
   @Delete(':id')
@@ -76,9 +79,11 @@ export class TransactionController {
     const transaction = await this.transactionService.remove(id);
 
     if (!transaction) {
-      return res.status(204).send({ message: 'No transaction found.' });
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .send({ message: 'No transaction found.' });
     }
 
-    return res.status(200).send(transaction);
+    return res.status(HttpStatus.OK).send(transaction);
   }
 }

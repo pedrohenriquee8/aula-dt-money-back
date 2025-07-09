@@ -1,9 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
@@ -36,13 +31,17 @@ export class TransactionService {
   }
 
   async findOne(id: string) {
-    const transaction = await this.prisma.transaction.findUnique({
+    const transactionFound = await this.prisma.transaction.findUnique({
       where: {
         id,
       },
     });
 
-    return transaction;
+    if (!transactionFound) {
+      throw new BadRequestException(`Transaction with id ${id} not found`);
+    }
+
+    return transactionFound;
   }
 
   async update(id: string, updateTransactionDto: UpdateTransactionDto) {
@@ -53,6 +52,10 @@ export class TransactionService {
       data: updateTransactionDto,
     });
 
+    if (!updatedTransaction) {
+      throw new BadRequestException(`Transaction with id ${id} not found`);
+    }
+
     return updatedTransaction;
   }
 
@@ -62,6 +65,10 @@ export class TransactionService {
         id,
       },
     });
+
+    if (!deletedTransaction) {
+      throw new BadRequestException(`Transaction with id ${id} not found`);
+    }
 
     return deletedTransaction;
   }
