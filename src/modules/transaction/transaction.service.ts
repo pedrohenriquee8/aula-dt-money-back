@@ -37,15 +37,46 @@ export class TransactionService {
     }
 
     const totalTransactions = await this.prisma.transaction.count();
-
     const totalPages = Math.ceil(totalTransactions / pageSize);
+
+    const totalValueTransactions = await this.prisma.transaction.aggregate({
+      _sum: {
+        price: true,
+      },
+    });
+
+    const totalValueIncomeTransactions =
+      await this.prisma.transaction.aggregate({
+        _sum: {
+          price: true,
+        },
+        where: {
+          type: 'INCOME',
+        },
+      });
+
+    const totalValueOutcomeTransactions =
+      await this.prisma.transaction.aggregate({
+        _sum: {
+          price: true,
+        },
+        where: {
+          type: 'OUTCOME',
+        },
+      });
 
     return {
       data: transactions,
-      total: totalTransactions,
-      page,
-      pageSize,
-      totalPages,
+      pagination: {
+        page,
+        pageSize,
+        totalPages,
+      },
+      totals: {
+        total: totalValueTransactions._sum.price || 0,
+        totalIncome: totalValueIncomeTransactions._sum.price || 0,
+        totalOutcome: totalValueOutcomeTransactions._sum.price || 0,
+      },
     };
   }
 
