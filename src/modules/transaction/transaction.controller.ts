@@ -8,6 +8,7 @@ import {
   Delete,
   Res,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
@@ -30,10 +31,20 @@ export class TransactionController {
   }
 
   @Get()
-  async findAll(@Res() res: Response) {
-    const transactions = await this.transactionService.findAll();
+  async findAll(
+    @Query('page') page: string,
+    @Query('pageSize') pageSize: string,
+    @Res() res: Response,
+  ) {
+    const pageInt = parseInt(page, 10) || 1;
+    const pageSizeInt = parseInt(pageSize, 10) || 10;
 
-    if (!transactions || !transactions.length) {
+    const transactions = await this.transactionService.findAll(
+      pageInt,
+      pageSizeInt,
+    );
+
+    if (!transactions || transactions.data.length === 0) {
       return res
         .status(HttpStatus.NOT_FOUND)
         .send({ message: 'No transactions found.' });

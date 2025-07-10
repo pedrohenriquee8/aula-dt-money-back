@@ -20,14 +20,33 @@ export class TransactionService {
     return createdTransaction;
   }
 
-  async findAll() {
+  async findAll(page: number, pageSize: number) {
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
     const transactions = await this.prisma.transaction.findMany({
+      skip,
+      take,
       orderBy: {
         data: 'desc',
       },
     });
 
-    return transactions;
+    if (!transactions || transactions.length === 0) {
+      throw new BadRequestException('No transactions found');
+    }
+
+    const totalTransactions = await this.prisma.transaction.count();
+
+    const totalPages = Math.ceil(totalTransactions / pageSize);
+
+    return {
+      data: transactions,
+      total: totalTransactions,
+      page,
+      pageSize,
+      totalPages,
+    };
   }
 
   async findOne(id: string) {
