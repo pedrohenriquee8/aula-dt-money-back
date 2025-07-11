@@ -39,12 +39,6 @@ export class TransactionService {
     const totalTransactions = await this.prisma.transaction.count();
     const totalPages = Math.ceil(totalTransactions / pageSize);
 
-    const totalValueTransactions = await this.prisma.transaction.aggregate({
-      _sum: {
-        price: true,
-      },
-    });
-
     const totalValueIncomeTransactions =
       await this.prisma.transaction.aggregate({
         _sum: {
@@ -65,6 +59,13 @@ export class TransactionService {
         },
       });
 
+    const totalValueTransactions =
+      totalValueIncomeTransactions._sum.price &&
+      totalValueOutcomeTransactions._sum.price
+        ? totalValueIncomeTransactions._sum.price -
+          totalValueOutcomeTransactions._sum.price
+        : 0;
+
     return {
       data: transactions,
       pagination: {
@@ -73,7 +74,7 @@ export class TransactionService {
         totalPages,
       },
       totals: {
-        total: totalValueTransactions._sum.price || 0,
+        total: totalValueTransactions,
         totalIncome: totalValueIncomeTransactions._sum.price || 0,
         totalOutcome: totalValueOutcomeTransactions._sum.price || 0,
       },
